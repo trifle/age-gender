@@ -5,6 +5,15 @@ It is the second part of the replication package: The first repository (`face`) 
 ## Prerequisites
 The datasets used here are fairly large (with approximately 50 million lines). Our data preparation code is mostly optimized for legibility instead of efficiency. As a result, more than 32GB of memory (ram) are needed to run the entire pipeline.
 
+## Non-public data
+Our analysis contains propietary content analysis coding from ALM (`ALM-2012-2018.sav`), which we cannot publish in full. This omission unfortunately renders a complete replication impossible. We have, however, retained the entire code used to prepare, transform, merge and analyze all datasets, so that these steps may be scrutinized.
+
+The two final aggregated datasets used in the analysis are included in this repository: `data/agm_program-aggregates.tsv.gz` contains per-show aggregates of age, gender share, gender counts and counts per age bracket, along with the station, date, ALM genre classification and a cryptographic hash of the title.
+The second file, `data/hourly_age_gender.tsv.gz`, contains per-hour aggregates of age and gender plus date and station; these are used to present a broad overview of variation in the data.
+
+## Reproducibility
+Changing versions of R packages can lead to differences between published and repeated results. We therefore include a snapshot of all package versions from the R library `packrat`.
+
 ## Data preparation
 As the R code might not be self-explanatory to all readers, we offer a brief high-level description.
 
@@ -21,5 +30,4 @@ Next, the individual datapoints for each face are annotated with age and gender 
 ## Analysis
 Our analysis primarily comprises lme4 multilevel models and ggplot visualizations, with some aggregated raw data added to visualize variance. Figure 6, a heatmap, is derived directly from raw data.
 
-## Non-public data
-Our analysis contains propietary content analysis coding from ALM (`ALM-2012-2018.sav`), which we cannot publish in full. This omission unfortunately renders a complete replication impossible. We have, however, retained the entire code used to prepare, transform, merge and analyze all datasets, so that these steps may be scrutinized.
+
