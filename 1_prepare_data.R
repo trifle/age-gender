@@ -2,6 +2,7 @@ library(tidyverse)
 library(haven)
 library(lubridate)
 library(data.table)
+library(digest)
 
 # -----------------------------------
 # Read raw age and gender classification data
@@ -279,8 +280,10 @@ a <- a %>%
 
 # Save checkpoint for analysis
 a %>%
-  select(-sparte, -ASparte, -titel, -contains("tab")) %>%
-  fwrite("data/tv_sparte.tsv.gz")
+  rowwise() %>%
+  mutate(title_digest=digest(ts)) %>%
+  select(-sparte, -ASparte, -titel, -contains("tab"), -ts) %>%
+  fwrite("data/agm_program-aggregates.tsv.gz")
 
 # Prepare hourly aggregates for heatmap
 # We create an artificial year with days numbered sequantially

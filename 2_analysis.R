@@ -18,7 +18,7 @@ theme_set(theme_bw() +
             ))
 
 # Load data, make sure public is a factor
-d = read_csv("data/tv_sparte.tsv.gz") %>%
+d = read_csv("data/agm_program-aggregates.tsv.gz") %>%
   mutate(public=as_factor(public))
 
 # ---------------------- GENDER MODELS
