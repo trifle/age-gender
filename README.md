@@ -2,6 +2,9 @@
 This repository contains analysis code for the paper {TBD}.
 It is the second part of the replication package: The first repository (`face`) contains the python-based code for extracting faces from video files and classifying age and gender.
 
+![Heatmap](figures/fig6-combined.png)
+Age and gender distribution of faces on German mainstream TV
+
 ## Prerequisites
 The datasets used here are fairly large (with approximately 50 million lines). Our data preparation code is mostly optimized for legibility instead of efficiency. As a result, more than 32GB of memory (ram) are needed to run the entire pipeline.
 
