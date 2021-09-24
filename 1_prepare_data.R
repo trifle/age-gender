@@ -281,3 +281,27 @@ a <- a %>%
 a %>%
   select(-sparte, -ASparte, -titel, -contains("tab")) %>%
   fwrite("data/tv_sparte.tsv.gz")
+
+# Prepare hourly aggregates for heatmap
+# We create an artificial year with days numbered sequantially
+# i.e. sample day 1 is artificial January 1st, sample day 2 is the 2nd etc.
+# So that we can use temporal plots easily
+fread("data/agm_alm_gender_counts.tsv.gz") %>%
+  as_tibble() %>%
+  filter(date < lubridate::ymd("20180101")) %>%
+  group_by(date) %>%
+  mutate(day_id = group_indices() - 1) %>%
+  ungroup() %>%
+  mutate(date_time = (lubridate::ymd_hm(datestamp) + lubridate::seconds(second))) %>%
+  mutate(hour=lubridate::hour(date_time), minute=lubridate::minute(date_time)) %>%
+  mutate(fake_date=lubridate::ymd("2014-01-01") + day_id + lubridate::hours(hour)) %>%
+  group_by(fake_date, station) %>%
+  summarize(age=mean(age),
+            female_count=sum(female_count),
+            male_count=sum(male_count),
+            day_id=day_id) %>%
+  distinct() %>%
+  ungroup() %>%
+  mutate(female_prop=female_count/(female_count+male_count)) %>%
+  mutate(hour=lubridate::hour(fake_date)) %>%
+  fwrite("data/hourly_age_gender.tsv.gz")

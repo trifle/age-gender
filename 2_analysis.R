@@ -1,5 +1,5 @@
 if (!require("pacman")) install.packages("pacman", repos = "https://cloud.r-project.org")
-pacman::p_load(ggeffects, furrr, lme4, lubridate, tidyverse, patchwork)
+pacman::p_load(ggeffects, furrr, lme4, lubridate, tidyverse, patchwork, data.table)
 pacman::p_load_gh("easystats/easystats")
 
 # ----------------------
@@ -92,7 +92,7 @@ bind_rows(pred_overall, pred_by_genre)%>%
   theme(legend.position = "none")+
   labs(x = "Year", y = "Proportion of females")
 
-ggsave("final/fig1.png", width = 10, height = 7)
+ggsave("figures/fig1.png", width = 10, height = 7)
 
 # ----------------------
 # FIGURE 2 - share of female faces per genre, split by public/private broadcaster
@@ -109,7 +109,7 @@ bind_rows(
   labs(x = "", y = "Estimated proportion of female faces", color = "")+
   theme(legend.position = "top")
 
-ggsave("final/fig2_bw.png", width = 8, height = 4)
+ggsave("figures/fig2_bw.png", width = 8, height = 4)
 
 # ---------------------- AGE MODELS
 # Linear models for age
@@ -183,7 +183,7 @@ bind_rows(pred_overall_age, pred_by_genre_age)%>%
   theme(legend.position = "none")+
   labs(x = "Year", y = "Estimated average age")
 
-ggsave("final/fig3.png", width = 10, height = 7)
+ggsave("figures/fig3.png", width = 10, height = 7)
 
 # ----------------------
 # FIGURE 4 - age of faces by gender, genre and split by public/private broadcaster
@@ -199,7 +199,7 @@ age_m3 %>%
   labs(x = "", y = "Estimated average age", color = "")+
   theme(legend.position = "top")
 
-ggsave("final/fig4.png", width = 8, height = 4)
+ggsave("figures/fig4.png", width = 8, height = 4)
 
 
 # Age gap analysis
@@ -230,49 +230,14 @@ bind_rows(pred_overall, pred_by_genre)%>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   guides(colour = guide_legend(nrow = 1))
 
-ggsave("final/fig5-slopes.png", width = 10, height = 7)
+ggsave("figures/fig5-slopes.png", width = 10, height = 7)
 
 # ----------------------
 # FIGURE 6 - Heatmap
-# We create an artificial year with days numbered sequantially
-# i.e. sample day 1 is artificial January 1st, sample day 2 is the 2nd etc.
-# So that we can use temporal plots easily
-b <- fread("data/agm_alm_gender_counts.tsv.gz") %>%
-  as_tibble() %>%
-  filter(date < lubridate::ymd("20180101")) %>%
-  group_by(date) %>%
-  mutate(day_id = group_indices() - 1) %>%
-  ungroup() %>%
-  mutate(date_time = (lubridate::ymd_hm(datestamp) + lubridate::seconds(second))) %>%
-  mutate(hour=lubridate::hour(date_time), minute=lubridate::minute(date_time)) %>%
-  mutate(fake_date=lubridate::ymd("2014-01-01") + day_id + lubridate::hours(hour)) %>%
-  group_by(fake_date, station) %>%
-  summarize(age=mean(age),
-            female_count=sum(female_count),
-            male_count=sum(male_count),
-            day_id=day_id) %>%
-  distinct() %>%
-  ungroup() %>%
-  mutate(female_prop=female_count/(female_count+male_count)) %>%
-  mutate(hour=lubridate::hour(fake_date))
+# Load hourly aggregates
+b <- fread("data/hourly_age_gender.tsv.gz")
 
-
-b <- fread("data/agm_alm_gender_counts.tsv.gz") %>%
-  as_tibble() %>%
-  filter(date < lubridate::ymd("20180101")) %>%
-  group_by(date) %>%
-  mutate(day_id = group_indices()) %>%
-  ungroup() %>%
-  mutate(date_time = (lubridate::ymd_hm(datestamp) + lubridate::seconds(second))) %>%
-  mutate(hour=lubridate::hour(date_time), minute=lubridate::minute(date_time)) %>%
-  mutate(fake_date=lubridate::ymd("2014-01-01") + day_id + lubridate::hours(hour)) %>%
-  group_by(fake_date, station) %>%
-  summarize(age=mean(age),
-            day_id=day_id) %>%
-  distinct() %>%
-  ungroup() %>%
-  mutate(hour=lubridate::hour(fake_date))
-
+# FIGURE 6.1 - Heatmap of gender
 heatmap1 <-  b %>%
   ggplot(aes(x=day_id, y=hour)) +
   geom_tile(aes(fill = female_prop*100), colour = "white") +
@@ -284,8 +249,9 @@ heatmap1 <-  b %>%
   theme(legend.title = element_text()) +
   guides(fill = guide_colourbar(barwidth = 10, barheight = .5, title.vjust = 1))
 
-ggsave("fig6-1.png", width = 8, height = 4)
+ggsave("figures/fig6-1.png", width = 8, height = 4)
 
+# FIGURE 6.2 - Heatmap of age
 heatmap2 <- b %>%
   ggplot(aes(x=day_id, y=hour)) +
   geom_tile(aes(fill = age), colour = "white") +
@@ -299,8 +265,8 @@ heatmap2 <- b %>%
   theme(legend.title = element_text()) +
   guides(fill = guide_colourbar(barwidth = 10, barheight = .5, title.vjust = 1))
 
-ggsave("fig6-2.png", width = 8, height = 4)
+ggsave("figures/fig6-2.png", width = 8, height = 4)
 
 heatmap_combined <- heatmap1 + heatmap2
-ggsave("final/fig6-combined.png", plot=heatmap_combined, width = 9, height = 8)
+ggsave("figures/fig6-combined.png", plot=heatmap_combined, width = 9, height = 8)
 
